@@ -1,0 +1,191 @@
+<main class="page">
+  <section class="card">
+    <header>
+      <p class="eyebrow">Angular Demo</p>
+      <h1>Starter Form Playground</h1>
+      <p class="sub">
+        A single form with different input types to kickstart UI and validation work.
+      </p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="grid">
+        <label>
+          Full name
+          <input type="text" formControlName="fullName" placeholder="Jane Doe" />
+        </label>
+
+        @if (isVisible('email')) {
+          <label>
+            Email @if (isRequired('email')) { <span class="required-chip">required</span> }
+            <input type="email" formControlName="email" placeholder="jane@example.com" />
+          </label>
+        }
+
+        <label>
+          Password
+          <input type="password" formControlName="password" placeholder="At least 8 characters" />
+        </label>
+
+        <label>
+          Age
+          <input type="number" formControlName="age" min="1" max="120" />
+        </label>
+
+        <label>
+          Birth date
+          <input type="date" formControlName="birthDate" />
+        </label>
+
+        @if (isVisible('preferredTime')) {
+          <label>
+            Preferred time @if (isRequired('preferredTime')) { <span class="required-chip">required</span> }
+            <input type="time" formControlName="preferredTime" />
+          </label>
+        }
+
+        <label>
+          Website @if (isIgnored('website')) { <span class="muted-chip">ignored</span> }
+          <input type="url" formControlName="website" placeholder="https://example.com" />
+        </label>
+
+        @if (isVisible('phone')) {
+          <label>
+            Phone @if (isRequired('phone')) { <span class="required-chip">required</span> }
+            <input type="tel" formControlName="phone" placeholder="+1 555 123 4567" />
+          </label>
+        }
+
+        <label>
+          Favorite color
+          <input type="color" formControlName="favoriteColor" />
+        </label>
+
+        <label>
+          Satisfaction (range)
+          <input type="range" formControlName="satisfaction" min="0" max="100" step="1" />
+          <span class="hint">{{ form.controls.satisfaction.value }}%</span>
+        </label>
+
+        <label>
+          Role
+          <select formControlName="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="auditor">Auditor</option>
+          </select>
+        </label>
+
+        @if (isVisible('skills')) {
+          <label>
+            Skills (multi-select)
+            <select formControlName="skills" multiple>
+              <option value="angular">Angular</option>
+              <option value="typescript">TypeScript</option>
+              <option value="rxjs">RxJS</option>
+              <option value="testing">Testing</option>
+            </select>
+          </label>
+        }
+      </div>
+
+      <fieldset>
+        <legend>Location (radio)</legend>
+        <label class="inline"><input type="radio" formControlName="location" value="remote" /> Remote</label>
+        <label class="inline"><input type="radio" formControlName="location" value="hybrid" /> Hybrid</label>
+        <label class="inline"><input type="radio" formControlName="location" value="onsite" /> On-site</label>
+      </fieldset>
+
+      <label>
+        Short bio
+        <textarea formControlName="bio" rows="4" placeholder="Tell us a bit about yourself"></textarea>
+      </label>
+
+      <label>
+        Upload files
+        <input type="file" formControlName="uploadedFiles" multiple (change)="onFileChange($event)" />
+      </label>
+
+      <div class="checks">
+        <label class="inline">
+          <input type="checkbox" formControlName="subscribeNewsletter" /> Subscribe to newsletter
+        </label>
+        <label class="inline">
+          <input type="checkbox" formControlName="acceptTerms" /> I accept the terms
+        </label>
+      </div>
+
+      @if (submitted && form.invalid) {
+        <p class="error">Please complete all required fields and accept the terms.</p>
+      }
+
+      <div class="actions">
+        <button type="submit">{{ editingRecordId ? 'Update record' : 'Submit' }}</button>
+        <button type="button" class="ghost" (click)="resetForm()">Reset</button>
+        @if (editingRecordId) {
+          <button type="button" class="warn" (click)="cancelEdit()">Cancel edit</button>
+        }
+      </div>
+    </form>
+  </section>
+
+  <section class="card preview">
+    <h2>Live Values</h2>
+    <pre>{{ form.getRawValue() | json }}</pre>
+
+    <h3>Selected Files</h3>
+    <ul>
+      @for (file of selectedFiles; track file) {
+        <li>{{ file }}</li>
+      } @empty {
+        <li>No files selected</li>
+      }
+    </ul>
+  </section>
+
+  <section class="card records">
+    <h2>Submitted Records</h2>
+
+    @if (records$ | async; as records) {
+      @if (records.length > 0) {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Submitted At</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Location</th>
+                <th>Skills</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (record of records; track record.id; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ formatSubmittedAt(record.submittedAt) }}</td>
+                  <td>{{ record.data.fullName }}</td>
+                  <td>{{ record.data.email || '-' }}</td>
+                  <td>{{ record.data.role }}</td>
+                  <td>{{ record.data.location }}</td>
+                  <td>{{ record.data.skills.join(', ') || '-' }}</td>
+                  <td class="row-actions">
+                    <button type="button" class="table-btn edit" (click)="editRecord(record.id)">Edit</button>
+                    <button type="button" class="table-btn delete" (click)="deleteRecord(record.id)">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="hint">No records submitted yet.</p>
+      }
+    }
+  </section>
+</main>
+
+<router-outlet />
